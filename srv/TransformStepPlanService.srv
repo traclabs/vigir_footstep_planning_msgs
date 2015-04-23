@@ -1,0 +1,5 @@
+vigir_footstep_planning_msgs/StepPlan step_plan
+std_msgs/String target_frame                        # should be "planner" or "robot"
+---
+vigir_footstep_planning_msgs/StepPlan step_plan
+vigir_footstep_planning_msgs/ErrorStatus status

@@ -1,0 +1,4 @@
+std_msgs/String name
+---
+vigir_footstep_planning_msgs/ParameterSet params
+vigir_footstep_planning_msgs/ErrorStatus status

@@ -1,0 +1,3 @@
+std_msgs/Header header
+vigir_footstep_planning_msgs/Step[] visited_steps
+vigir_footstep_planning_msgs/StepPlan current_step_plan

@@ -1,0 +1,10 @@
+vigir_footstep_planning_msgs/StepPlan step_plan
+---
+vigir_footstep_planning_msgs/FootstepExecutionStatus status
+---
+uint32 last_performed_step_index        # latest step which execution was already performed and finished
+uint32 currently_executing_step_index   # current step which is executed
+uint32 first_changeable_step_index      # first step which may be changed
+uint32 stepping_status                  # Use FootstepExecutionStatus.msg values
+
+vigir_footstep_planning_msgs/StepPlanFeedback feedback

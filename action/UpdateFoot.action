@@ -1,0 +1,6 @@
+vigir_footstep_planning_msgs/Foot foot
+vigir_footstep_planning_msgs/UpdateMode update_mode
+---
+vigir_footstep_planning_msgs/Foot foot
+vigir_footstep_planning_msgs/ErrorStatus status
+---

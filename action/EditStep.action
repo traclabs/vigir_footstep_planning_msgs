@@ -1,0 +1,6 @@
+vigir_footstep_planning_msgs/StepPlan step_plan
+vigir_footstep_planning_msgs/EditStep edit_step
+---
+vigir_footstep_planning_msgs/StepPlan[] step_plans
+vigir_footstep_planning_msgs/ErrorStatus status
+---

@@ -1,0 +1,6 @@
+vigir_footstep_planning_msgs/StepPlan step_plan
+vigir_footstep_planning_msgs/UpdateMode update_mode
+std_msgs/String parameter_set_name
+---
+vigir_footstep_planning_msgs/StepPlan step_plan
+vigir_footstep_planning_msgs/ErrorStatus status

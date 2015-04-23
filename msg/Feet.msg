@@ -1,0 +1,3 @@
+std_msgs/Header header
+vigir_footstep_planning_msgs/Foot left
+vigir_footstep_planning_msgs/Foot right

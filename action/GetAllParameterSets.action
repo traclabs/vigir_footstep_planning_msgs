@@ -1,0 +1,4 @@
+---
+vigir_footstep_planning_msgs/ParameterSet[] param_sets
+vigir_footstep_planning_msgs/ErrorStatus status
+---

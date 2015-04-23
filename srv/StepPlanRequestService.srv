@@ -1,0 +1,7 @@
+vigir_footstep_planning_msgs/StepPlanRequest plan_request
+---
+vigir_footstep_planning_msgs/StepPlan step_plan
+vigir_footstep_planning_msgs/ErrorStatus status
+
+float32 final_eps
+float32 planning_time

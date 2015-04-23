@@ -1,0 +1,4 @@
+---
+vigir_footstep_planning_msgs/StepPlan step_plan
+vigir_footstep_planning_msgs/ErrorStatus status
+---
