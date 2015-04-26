@@ -8,6 +8,8 @@ float32 dz
 bool close_step
 bool extra_seperation
 
+bool use_terrain_model
+
 bool override
 float32 roll
 float32 pitch
