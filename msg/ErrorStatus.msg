@@ -9,6 +9,7 @@ uint32 ERR_INVALID_STEP             =  64
 uint32 ERR_INCONSISTENT_STEP_PLAN   = 128
 uint32 ERR_INVALID_PARAMETERS       = 256
 uint32 ERR_NO_PLUGIN_AVAILABLE      = 512
+uint32 ERR_INCONSISTENT_REQUEST     = 1024
 
 uint32 error # binary encoded
 string error_msg
