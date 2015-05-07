@@ -138,8 +138,6 @@ msgs::ErrorStatus StepPlan::insertStep(const msgs::Step& step)
   // insert step
   this->steps[step.step_index] = step;
 
-  header.stamp = ros::Time::now();
-
   return msgs::ErrorStatus();
 }
 
@@ -157,8 +155,6 @@ msgs::ErrorStatus StepPlan::updateStep(const msgs::Step& step)
   // insert/update step
   this->steps[step.step_index] = step;
   this->steps[step.step_index].modified = modified;
-
-  header.stamp = ros::Time::now();
 
   return msgs::ErrorStatus();
 }
