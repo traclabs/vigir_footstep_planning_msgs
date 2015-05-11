@@ -1,6 +1,6 @@
 vigir_footstep_planning_msgs/FeetPoseRequest request
 ---
-Header header
+std_msgs/Header header
 vigir_footstep_planning_msgs/Feet feet
 vigir_footstep_planning_msgs/ErrorStatus status
 ---
