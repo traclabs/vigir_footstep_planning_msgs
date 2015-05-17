@@ -12,6 +12,7 @@ bool locked
 bool modified
 
 # generic params
+float32 sway_duration
 float32 step_duration
 float32 swing_height
 
