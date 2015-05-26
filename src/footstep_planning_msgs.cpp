@@ -68,6 +68,7 @@ std::string ErrorStatusCodeToString(unsigned int error)
     case msgs::ErrorStatus::ERR_INCONSISTENT_STEP_PLAN: return "ERR_INCONSISTENT_STEP_PLAN";
     case msgs::ErrorStatus::ERR_INVALID_PARAMETERS: return "ERR_INVALID_PARAMETERS";
     case msgs::ErrorStatus::ERR_NO_PLUGIN_AVAILABLE: return "ERR_NO_PLUGIN_AVAILABLE";
+    case msgs::ErrorStatus::ERR_INCONSISTENT_REQUEST: return "ERR_INCONSISTENT_REQUEST";
     default: return "ERR_UNKNOWN";
   }
 }
@@ -140,6 +141,49 @@ std::string toString(const msgs::ErrorStatus& error_status)
       msg += "\n";
     msg = error_status.warning_msg;
   }
+
+  return msg;
+}
+
+std::string toString(const msgs::FootstepExecutionStatus& execution_status)
+{
+  if (!execution_status.status)
+    return "NO_ERROR";
+
+  std::string msg;
+
+  if (execution_status.status & msgs::FootstepExecutionStatus::REACHED_GOAL)
+    msg += "REACHED_GOAL ";
+  if (execution_status.status & msgs::FootstepExecutionStatus::WAITING_FOR_ATLAS)
+    msg += "WAITING_FOR_ATLAS ";
+  if (execution_status.status & msgs::FootstepExecutionStatus::EXECUTING_STEP_PLAN)
+    msg += "EXECUTING_STEP_PLAN ";
+  if (execution_status.status & msgs::FootstepExecutionStatus::PREMATURE_HALT)
+    msg += "PREMATURE_HALT ";
+  if (execution_status.status & msgs::FootstepExecutionStatus::UPDATED_STEP_PLAN)
+    msg += "UPDATED_STEP_PLAN ";
+  if (execution_status.status & msgs::FootstepExecutionStatus::EMERGENCY_HALT)
+    msg += "EMERGENCY_HALT ";
+  if (execution_status.status & msgs::FootstepExecutionStatus::ERR_UNKNOWN)
+    msg += "ERR_UNKNOWN ";
+  if (execution_status.status & msgs::FootstepExecutionStatus::ERR_EMPTY_PLAN)
+    msg += "ERR_EMPTY_PLAN ";
+  if (execution_status.status & msgs::FootstepExecutionStatus::ERR_INVALID_BEHAVIOR_MODE)
+    msg += "ERR_INVALID_BEHAVIOR_MODE ";
+  if (execution_status.status & msgs::FootstepExecutionStatus::ERR_INVALID_PLAN)
+    msg += "ERR_INVALID_PLAN ";
+  if (execution_status.status & msgs::FootstepExecutionStatus::ERR_INVALID_INCONSISTENT_INDICES)
+    msg += "ERR_INVALID_INCONSISTENT_INDICES ";
+  if (execution_status.status & msgs::FootstepExecutionStatus::ERR_INCONSISTENT_STEP_PLAN)
+    msg += "ERR_INCONSISTENT_STEP_PLAN ";
+  if (execution_status.status & msgs::FootstepExecutionStatus::ERR_CONTROLLER_NOT_READY)
+    msg += "ERR_CONTROLLER_NOT_READY ";
+  if (execution_status.status & msgs::FootstepExecutionStatus::ERR_FALLEN)
+    msg += "ERR_FALLEN ";
+  if (execution_status.status & msgs::FootstepExecutionStatus::ERR_NON_ZERO_INITIAL_STEP)
+    msg += "ERR_NON_ZERO_INITIAL_STEP ";
+  if (execution_status.status & msgs::FootstepExecutionStatus::ERR_NEXT_ERROR)
+    msg += "ERR_NEXT_ERROR ";
 
   return msg;
 }

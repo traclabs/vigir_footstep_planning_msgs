@@ -120,6 +120,8 @@ bool isOk(const msgs::ErrorStatus& status);
 
 std::string toString(const msgs::ErrorStatus& error_status);
 
+std::string toString(const msgs::FootstepExecutionStatus& execution_status);
+
 // some helper
 std::string toString(const XmlRpc::XmlRpcValue& val);
 std::string toString(const XmlRpc::XmlRpcValue::Type& type);
