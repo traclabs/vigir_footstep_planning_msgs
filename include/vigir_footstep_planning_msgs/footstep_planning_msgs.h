@@ -33,8 +33,6 @@
 
 #include <geometry_msgs/Vector3.h>
 
-#include <vigir_footstep_planning_msgs/serialization.h>
-
 // messages
 #include <vigir_footstep_planning_msgs/EditStep.h>
 #include <vigir_footstep_planning_msgs/ErrorStatus.h>
@@ -44,8 +42,6 @@
 #include <vigir_footstep_planning_msgs/Foot.h>
 #include <vigir_footstep_planning_msgs/PatternParameters.h>
 #include <vigir_footstep_planning_msgs/PatternGeneratorParameters.h>
-#include <vigir_footstep_planning_msgs/ParameterSet.h>
-#include <vigir_footstep_planning_msgs/Parameter.h>
 #include <vigir_footstep_planning_msgs/PlanningFeedback.h>
 #include <vigir_footstep_planning_msgs/StepPlanFeedback.h>
 #include <vigir_footstep_planning_msgs/StepPlanRequest.h>
@@ -57,12 +53,8 @@
 #include <vigir_footstep_planning_msgs/EditStepService.h>
 #include <vigir_footstep_planning_msgs/GenerateFeetPoseService.h>
 #include <vigir_footstep_planning_msgs/GeneratePatternService.h>
-#include <vigir_footstep_planning_msgs/GetAllParameterSetsService.h>
-#include <vigir_footstep_planning_msgs/GetParameterSetNamesService.h>
-#include <vigir_footstep_planning_msgs/GetParameterSetService.h>
 #include <vigir_footstep_planning_msgs/GetStepPlanService.h>
 #include <vigir_footstep_planning_msgs/PatternGeneratorParametersService.h>
-#include <vigir_footstep_planning_msgs/SetParameterSetService.h>
 #include <vigir_footstep_planning_msgs/SetStepPlanService.h>
 #include <vigir_footstep_planning_msgs/StepPlanRequestService.h>
 #include <vigir_footstep_planning_msgs/StitchStepPlanService.h>
@@ -80,11 +72,7 @@
 #include <vigir_footstep_planning_msgs/ExecuteStepPlanAction.h>
 #include <vigir_footstep_planning_msgs/GenerateFeetPoseAction.h>
 #include <vigir_footstep_planning_msgs/GeneratePatternAction.h>
-#include <vigir_footstep_planning_msgs/GetAllParameterSetsAction.h>
-#include <vigir_footstep_planning_msgs/GetParameterSetAction.h>
-#include <vigir_footstep_planning_msgs/GetParameterSetNamesAction.h>
 #include <vigir_footstep_planning_msgs/GetStepPlanAction.h>
-#include <vigir_footstep_planning_msgs/SetParameterSetAction.h>
 #include <vigir_footstep_planning_msgs/SetStepPlanAction.h>
 #include <vigir_footstep_planning_msgs/StepPlanRequestAction.h>
 #include <vigir_footstep_planning_msgs/StitchStepPlanAction.h>
@@ -121,13 +109,6 @@ bool isOk(const msgs::ErrorStatus& status);
 std::string toString(const msgs::ErrorStatus& error_status);
 
 std::string toString(const msgs::FootstepExecutionStatus& execution_status);
-
-// some helper
-std::string toString(const XmlRpc::XmlRpcValue& val);
-std::string toString(const XmlRpc::XmlRpcValue::Type& type);
-
-std::string& strip(std::string& s, const char c);
-std::string strip_const(const std::string& s, const char c);
 
 template <typename Tin, typename Tout>
 void copyPosition(const Tin &p_in, Tout &p_out)

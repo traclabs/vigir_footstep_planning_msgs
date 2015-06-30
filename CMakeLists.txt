@@ -29,8 +29,6 @@ add_message_files(
   FeetPoseRequest.msg
   FootstepExecutionStatus.msg
   Foot.msg
-  ParameterSet.msg
-  Parameter.msg
   PatternGeneratorParameters.msg
   PatternParameters.msg
   PlanningFeedback.msg
@@ -47,12 +45,8 @@ add_service_files(
   EditStepService.srv
   GenerateFeetPoseService.srv
   GeneratePatternService.srv
-  GetAllParameterSetsService.srv
-  GetParameterSetNamesService.srv
-  GetParameterSetService.srv
   GetStepPlanService.srv
   PatternGeneratorParametersService.srv
-  SetParameterSetService.srv
   SetStepPlanService.srv
   StepPlanRequestService.srv
   StitchStepPlanService.srv
@@ -71,11 +65,7 @@ add_action_files(
   ExecuteStepPlan.action
   GenerateFeetPose.action
   GeneratePattern.action
-  GetAllParameterSets.action
-  GetParameterSet.action
-  GetParameterSetNames.action
   GetStepPlan.action
-  SetParameterSet.action
   SetStepPlan.action
   StepPlanRequest.action
   StitchStepPlan.action
@@ -119,16 +109,12 @@ include_directories(include ${catkin_INCLUDE_DIRS})
 ## Specify additional locations of header files
 set(HEADERS
   include/${PROJECT_NAME}/footstep_planning_msgs.h
-  include/${PROJECT_NAME}/parameter_set.h
-  include/${PROJECT_NAME}/serialization.h
   include/${PROJECT_NAME}/step_plan.h
   include/${PROJECT_NAME}/visualization.h
 )
 
 set(SOURCES
   src/footstep_planning_msgs.cpp
-  src/parameter_set.cpp
-  src/serialization.cpp
   src/step_plan.cpp
   src/visualization.cpp
 )
