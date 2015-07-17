@@ -7,7 +7,7 @@ project(vigir_footstep_planning_msgs)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-find_package(catkin REQUIRED COMPONENTS roscpp rospy message_generation actionlib_msgs actionlib std_msgs geometry_msgs nav_msgs visualization_msgs tf)
+find_package(catkin REQUIRED COMPONENTS roscpp rospy actionlib_msgs actionlib message_generation std_msgs geometry_msgs nav_msgs visualization_msgs tf)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -94,7 +94,7 @@ generate_messages(
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES vigir_footstep_planning_msgs
-  CATKIN_DEPENDS roscpp rospy message_runtime actionlib_msgs actionlib std_msgs geometry_msgs nav_msgs visualization_msgs tf
+  CATKIN_DEPENDS roscpp rospy actionlib_msgs actionlib message_runtime std_msgs geometry_msgs nav_msgs visualization_msgs tf
 #  DEPENDS system_lib
 )
 
