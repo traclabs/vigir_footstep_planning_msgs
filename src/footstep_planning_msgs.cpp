@@ -44,7 +44,7 @@ msgs::ErrorStatus isConsistent(const msgs::StepPlan& step_plan)
       status += ErrorStatusError(msgs::ErrorStatus::ERR_INCONSISTENT_STEP_PLAN, "isConsistent", "Frame id mismatch! Plan: " + step_plan.header.frame_id + " vs. step: " + itr->header.frame_id);
 
     if (itr->step_index != step_index++)
-      status += ErrorStatusWarning(msgs::ErrorStatus::WARN_INCOMPLETE_STEP_PLAN, "isConsistent", "Wrong step index: Expected " + boost::lexical_cast<std::string>(step_index-1) + " but got " + boost::lexical_cast<std::string>(itr->step_index) + "!");
+      status += ErrorStatusWarning(msgs::ErrorStatus::WARN_INCOMPLETE_STEP_PLAN, "isConsistent", "Wrong step index order: Expected " + boost::lexical_cast<std::string>(step_index-1) + " but got " + boost::lexical_cast<std::string>(itr->step_index) + "!");
 
     if (!itr->valid)
       status += ErrorStatusWarning(msgs::ErrorStatus::WARN_INVALID_STEP_PLAN, "isConsistent", "Step " + boost::lexical_cast<std::string>(itr->step_index) + " invalid!");

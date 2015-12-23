@@ -31,6 +31,8 @@
 
 #include <ros/ros.h>
 
+#include <boost/thread/shared_mutex.hpp>
+
 #include <vigir_footstep_planning_msgs/footstep_planning_msgs.h>
 
 
@@ -56,14 +58,32 @@ public:
   StepPlan& operator-(const msgs::Step& step);
 
   void clear();
-
-  msgs::ErrorStatus appendStepPlan(const msgs::StepPlan &step_plan);
-  msgs::ErrorStatus stitchStepPlan(const msgs::StepPlan &step_plan);
+  bool empty() const;
+  size_t size() const;
 
   msgs::ErrorStatus insertStep(const msgs::Step& step);
   msgs::ErrorStatus updateStep(const msgs::Step& step);
-  void removeStep(unsigned int step_index);
+
   bool hasStep(unsigned int step_index) const;
+
+  bool getStep(msgs::Step& step, unsigned int step_index) const;
+  bool getStepAt(msgs::Step& step, unsigned int position) const;
+  bool getfirstStep(msgs::Step& step) const;
+  bool getLastStep(msgs::Step& step) const;
+
+  bool popStep(msgs::Step& step);
+
+  void removeStep(unsigned int step_index);
+  void removeStepAt(unsigned int position);
+
+  msgs::ErrorStatus appendStepPlan(const msgs::StepPlan &step_plan);
+  msgs::ErrorStatus updateStepPlan(const msgs::StepPlan &step_plan);
+  msgs::ErrorStatus stitchStepPlan(const msgs::StepPlan &step_plan);
+
+  void removeSteps(unsigned int from_step_index, int to_step_index = -1);
+
+  int getFirstStepIndex() const;
+  int getLastStepIndex() const;
 
   msgs::ErrorStatus fromMsg(const msgs::StepPlan &step_plan);
   msgs::ErrorStatus toMsg(msgs::StepPlan& step_plan) const;
@@ -73,6 +93,11 @@ public:
   typedef boost::shared_ptr<const StepPlan> ConstPtr;
 
 protected:
+  msgs::ErrorStatus _insertStep(const msgs::Step& step);
+  msgs::ErrorStatus _updateStep(const msgs::Step& step);
+
+  mutable boost::shared_mutex step_plan_mutex;
+
   std_msgs::Header header;
   msgs::Feet start;
   msgs::Feet goal;
