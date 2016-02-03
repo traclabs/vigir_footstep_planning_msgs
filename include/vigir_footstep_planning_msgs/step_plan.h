@@ -72,27 +72,32 @@ public:
   bool getLastStep(msgs::Step& step) const;
 
   bool popStep(msgs::Step& step);
+  bool popStep();
 
   void removeStep(unsigned int step_index);
   void removeStepAt(unsigned int position);
 
-  msgs::ErrorStatus appendStepPlan(const msgs::StepPlan &step_plan);
-  msgs::ErrorStatus updateStepPlan(const msgs::StepPlan &step_plan);
-  msgs::ErrorStatus stitchStepPlan(const msgs::StepPlan &step_plan);
+  msgs::ErrorStatus appendStepPlan(const msgs::StepPlan& step_plan);
+  msgs::ErrorStatus updateStepPlan(const msgs::StepPlan& step_plan, int min_step_index = 0); // caution: Very unrestrictive for input step_plan, does not perform consisty checks!
+  msgs::ErrorStatus stitchStepPlan(const msgs::StepPlan& step_plan, int min_step_index = 0);
 
   void removeSteps(unsigned int from_step_index, int to_step_index = -1);
 
   int getFirstStepIndex() const;
   int getLastStepIndex() const;
 
-  msgs::ErrorStatus fromMsg(const msgs::StepPlan &step_plan);
+  msgs::ErrorStatus fromMsg(const msgs::StepPlan& step_plan);
   msgs::ErrorStatus toMsg(msgs::StepPlan& step_plan) const;
+
+  static bool getStep(msgs::Step& step, const msgs::StepPlan& step_plan, unsigned int step_index);
 
   // typedefs
   typedef boost::shared_ptr<StepPlan> Ptr;
   typedef boost::shared_ptr<const StepPlan> ConstPtr;
 
 protected:
+  // mutex free versions
+  bool _getStep(msgs::Step& step, unsigned int step_index) const;
   msgs::ErrorStatus _insertStep(const msgs::Step& step);
   msgs::ErrorStatus _updateStep(const msgs::Step& step);
 

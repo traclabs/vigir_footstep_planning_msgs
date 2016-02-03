@@ -4,7 +4,7 @@ import struct
 import rospy
 import vigir_footstep_planning_msgs.msg
 
-from vigir_footstep_planning_msgs.msg import Parameter
+from vigir_generic_params.msg import ParameterMsg
 from vigir_footstep_planning_msgs.serialization import *
 
 class Parameter():
@@ -32,7 +32,7 @@ class Parameter():
             self.set_value(value)
 
     def __str__(self):
-        return self._name + " (" + str(self.get_type_as_text()) + "): " + str(self._value)        
+        return self._name + " (" + str(self.get_type_as_text()) + "): " + str(self._value)
 
     def __repr__(self):
         return self.__str__()
@@ -113,7 +113,7 @@ class Parameter():
             return self._value
 
     def to_msg(self):
-        msg = vigir_footstep_planning_msgs.msg.Parameter()
+        msg = vigir_footstep_planning_msgs.msg.ParameterMsg()
         msg.key.data = self.get_name()
 
         # dispatch type
@@ -130,11 +130,11 @@ class Parameter():
         elif (self.get_type() == self.TYPE_ARRAY):
             msg.data += pack_uint32(len(self._value))
             for p in self._value:
-                msg.data += p.to_msg().data     
+                msg.data += p.to_msg().data
         elif (self.get_type() == self.TYPE_STRUCT):
             msg.data += pack_uint32(len(self._value))
             for p in self._value:
-                msg.data += pack_string(p.get_name()) + p.to_msg().data                
+                msg.data += pack_string(p.get_name()) + p.to_msg().data
         else:
             print "ERROR: Unsupported type (" + str(self.get_type()) + ")!"
 
@@ -166,7 +166,7 @@ class Parameter():
             size, offset = unpack_uint32(msg.data, offset)
             self._value = []
             for i in range(size):
-                # read name                
+                # read name
                 name, offset = unpack_string(msg.data, offset)
                 # read param
                 p = Parameter()
