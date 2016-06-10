@@ -9,16 +9,18 @@ uint8 ACTIVE    = 1
 uint8 PAUSED    = 2
 uint8 FINISHED  = 3
 uint8 FAILED    = 4
-int8 controller_state                  # current state of walk controller
+int8 controller_state                               # current state of walk controller
 
-int32 queue_size                       # number of steps enqueued
-int32 first_queued_step_index          # first step index in queue
-int32 last_queued_step_index           # last step index in queue
+vigir_footstep_planning_msgs/ErrorStatus status     # error status of walk controller
 
-int32 last_performed_step_index        # latest step which execution was already performed and finished
-int32 currently_executing_step_index   # current step which is executed
-int32 first_changeable_step_index      # first step which may be changed
+int32 queue_size                                    # number of steps enqueued
+int32 first_queued_step_index                       # first step index in queue
+int32 last_queued_step_index                        # last step index in queue
 
-int32 stepping_status                  # Use FootstepExecutionStatus.msg values
+int32 last_performed_step_index                     # latest step which execution was already performed and finished
+int32 currently_executing_step_index                # current step which is executed
+int32 first_changeable_step_index                   # first step which may be changed
+
+int32 stepping_status                               # Use FootstepExecutionStatus.msg values
 
 vigir_footstep_planning_msgs/StepPlanFeedback feedback
