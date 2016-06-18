@@ -1,5 +1,7 @@
 #include <vigir_footstep_planning_msgs/step_plan.h>
 
+
+
 namespace vigir_footstep_planning
 {
 StepPlan::StepPlan(const msgs::StepPlan& step_plan)
@@ -26,7 +28,7 @@ StepPlan& StepPlan::operator+(const msgs::StepPlan& step_plan)
 
 StepPlan& StepPlan::operator|(const msgs::StepPlan& step_plan)
 {
-  stitchStepPlan(step_plan);
+  updateStepPlan(step_plan);
   return *this;
 }
 
@@ -72,18 +74,24 @@ size_t StepPlan::size() const
   return steps.size();
 }
 
-msgs::ErrorStatus StepPlan::_insertStep(const msgs::Step& step)
+int StepPlan::getFirstStepIndex() const
 {
-  // check for errors
+  boost::shared_lock<boost::shared_mutex> lock(step_plan_mutex);
+
   if (steps.empty())
-    header = step.header;
-  else if (step.header.frame_id != header.frame_id)
-    return ErrorStatusError(msgs::ErrorStatus::ERR_UNKNOWN, "insertStep", "Frame id mismatch! Plan: " + header.frame_id + " vs. step: " + step.header.frame_id);
+    return -1;
+  else
+    return steps.begin()->second.step_index;
+}
 
-  // insert step
-  this->steps[step.step_index] = step;
+int StepPlan::getLastStepIndex() const
+{
+  boost::shared_lock<boost::shared_mutex> lock(step_plan_mutex);
 
-  return msgs::ErrorStatus();
+  if (steps.empty())
+    return -1;
+  else
+    return steps.rbegin()->second.step_index;
 }
 
 msgs::ErrorStatus StepPlan::insertStep(const msgs::Step& step)
@@ -92,51 +100,24 @@ msgs::ErrorStatus StepPlan::insertStep(const msgs::Step& step)
   return _insertStep(step);
 }
 
-msgs::ErrorStatus StepPlan::_updateStep(const msgs::Step& step)
-{
-  // check for errors
-  if (steps.empty())
-    header = step.header;
-  else if (step.header.frame_id != header.frame_id)
-    return ErrorStatusError(msgs::ErrorStatus::ERR_UNKNOWN, "updateStep", "Frame id mismatch! Plan: " + header.frame_id + " vs. step: " + step.header.frame_id);
-
-  // check if step has already existed
-  bool modified(hasStep(step.step_index));
-
-  // insert/update step
-  this->steps[step.step_index] = step;
-  this->steps[step.step_index].modified = modified;
-
-  return msgs::ErrorStatus();
-}
-
 msgs::ErrorStatus StepPlan::updateStep(const msgs::Step& step)
 {
   boost::unique_lock<boost::shared_mutex> lock(step_plan_mutex);
   return _updateStep(step);
 }
 
-bool StepPlan::hasStep(unsigned int step_index) const
+bool StepPlan::getStep(msgs::Step& step, const msgs::StepPlan& step_plan, unsigned int step_index)
 {
-  boost::shared_lock<boost::shared_mutex> lock(step_plan_mutex);
-  return steps.find(step_index) != steps.end();
-}
-
-bool StepPlan::_getStep(msgs::Step& step, unsigned int step_index) const
-{
-  std::map<unsigned int, msgs::Step>::const_iterator itr = steps.find(step_index);
-  if (itr != steps.end())
+  for (std::vector<msgs::Step>::const_iterator itr = step_plan.steps.begin(); itr != step_plan.steps.end(); itr++)
   {
-    step = itr->second;
-    return true;
+    const msgs::Step& s = *itr;
+    if (s.step_index == step_index)
+    {
+      step = s;
+      return true;
+    }
   }
   return false;
-}
-
-bool StepPlan::getStep(msgs::Step& step, unsigned int step_index) const
-{
-  boost::shared_lock<boost::shared_mutex> lock(step_plan_mutex);
-  return _getStep(step, step_index);
 }
 
 bool StepPlan::getStepAt(msgs::Step& step, unsigned int position) const
@@ -228,29 +209,147 @@ void StepPlan::removeSteps(unsigned int from_step_index, int to_step_index)
   steps.erase(start_itr, end_itr);
 }
 
-int StepPlan::getFirstStepIndex() const
-{
-  boost::shared_lock<boost::shared_mutex> lock(step_plan_mutex);
-
-  if (steps.empty())
-    return -1;
-  else
-    return steps.begin()->second.step_index;
-}
-
-int StepPlan::getLastStepIndex() const
-{
-  boost::shared_lock<boost::shared_mutex> lock(step_plan_mutex);
-
-  if (steps.empty())
-    return -1;
-  else
-    return steps.rbegin()->second.step_index;
-}
-
 msgs::ErrorStatus StepPlan::appendStepPlan(const msgs::StepPlan& step_plan)
 {
   boost::unique_lock<boost::shared_mutex> lock(step_plan_mutex);
+
+  // check for errors
+  msgs::ErrorStatus status = isConsistent(step_plan);
+  if (status.error != msgs::ErrorStatus::NO_ERROR)
+    return status;
+  else if (step_plan.steps.empty())
+    return ErrorStatusWarning(msgs::ErrorStatus::WARN_INVALID_STEP_PLAN, "appendStepPlan", "Got empty plan!");
+  else if (step_plan.header.frame_id != header.frame_id)
+    return ErrorStatusError(msgs::ErrorStatus::ERR_UNKNOWN, "appendStepPlan", "Frame id mismatch of plans: " + header.frame_id + " vs. " + step_plan.header.frame_id);
+  else if (mode != step_plan.mode)
+    return ErrorStatusError(msgs::ErrorStatus::ERR_UNKNOWN, "appendStepPlan", "Plans have different modes!");
+
+  // append plan
+  return _appendStepPlan(step_plan);
+}
+
+msgs::ErrorStatus StepPlan::updateStepPlan(const msgs::StepPlan& step_plan)
+{
+  boost::unique_lock<boost::shared_mutex> lock(step_plan_mutex);
+
+  // check for errors
+  if (step_plan.steps.empty())
+    return ErrorStatusWarning(msgs::ErrorStatus::WARN_INVALID_STEP_PLAN, "updateStepPlan", "Got empty plan!");
+  else if (step_plan.header.frame_id != header.frame_id)
+    return ErrorStatusError(msgs::ErrorStatus::ERR_UNKNOWN, "updateStepPlan", "Frame id mismatch of plans: " + header.frame_id + " vs. " + step_plan.header.frame_id);
+  else if (mode != step_plan.mode)
+    return ErrorStatusError(msgs::ErrorStatus::ERR_UNKNOWN, "updateStepPlan", "Plans have different modes!");
+
+  // update plan
+  return _updateStepPlan(step_plan);
+}
+
+msgs::ErrorStatus StepPlan::stitchStepPlan(const msgs::StepPlan& step_plan, int step_index)
+{
+  boost::unique_lock<boost::shared_mutex> lock(step_plan_mutex);
+
+  // check for errors
+  msgs::ErrorStatus status = isConsistent(step_plan);
+  if (status.error != msgs::ErrorStatus::NO_ERROR)
+    return status;
+  else if (step_plan.steps.empty())
+    return ErrorStatusWarning(msgs::ErrorStatus::WARN_INVALID_STEP_PLAN, "stitchStepPlan", "Got empty plan!");
+  else if (step_plan.header.frame_id != header.frame_id)
+    return ErrorStatusError(msgs::ErrorStatus::ERR_UNKNOWN, "stitchStepPlan", "Frame id mismatch of plans: " + header.frame_id + " vs. " + step_plan.header.frame_id);
+  else if (mode != step_plan.mode)
+    return ErrorStatusError(msgs::ErrorStatus::ERR_UNKNOWN, "stitchStepPlan", "Plans have different modes!");
+  else if (step_index > 0 && (steps.empty() || step_index > steps.rbegin()->second.step_index))
+    return ErrorStatusError(msgs::ErrorStatus::ERR_UNKNOWN, "stitchStepPlan", "Can't stitch as requested step index is not in current step plan!");
+  /// TODO: Check if stiching would result in consistent step plan
+
+  // stitch plan
+  return _stitchStepPlan(step_plan, step_index);
+}
+
+void StepPlan::transformStepPlan(msgs::StepPlan& step_plan, tf::Transform transform)
+{
+  tf::Pose pose;
+
+  // start pose
+  tf::poseMsgToTF(step_plan.start.left.pose, pose);
+  pose = transform * pose;
+  tf::poseTFToMsg(pose, step_plan.start.left.pose);
+
+  tf::poseMsgToTF(step_plan.start.right.pose, pose);
+  pose = transform * pose;
+  tf::poseTFToMsg(pose, step_plan.start.right.pose);
+
+  // goal pose
+  tf::poseMsgToTF(step_plan.goal.left.pose, pose);
+  pose = transform * pose;
+  tf::poseTFToMsg(pose, step_plan.goal.left.pose);
+
+  tf::poseMsgToTF(step_plan.goal.right.pose, pose);
+  pose = transform * pose;
+  tf::poseTFToMsg(pose, step_plan.goal.right.pose);
+
+  // entire plan
+  for (std::vector<msgs::Step>::iterator itr = step_plan.steps.begin(); itr != step_plan.steps.end(); itr++)
+  {
+    msgs::Step& step = *itr;
+
+    tf::poseMsgToTF(step.foot.pose, pose);
+    pose = transform * pose;
+    tf::poseTFToMsg(pose, step.foot.pose);
+  }
+}
+
+bool StepPlan::_hasStep(unsigned int step_index) const
+{
+  return steps.find(step_index) != steps.end();
+}
+
+bool StepPlan::_getStep(msgs::Step& step, unsigned int step_index) const
+{
+  std::map<unsigned int, msgs::Step>::const_iterator itr = steps.find(step_index);
+  if (itr != steps.end())
+  {
+    step = itr->second;
+    return true;
+  }
+  return false;
+}
+
+msgs::ErrorStatus StepPlan::_insertStep(const msgs::Step& step)
+{
+  // check for errors
+  if (steps.empty())
+    header = step.header;
+  else if (step.header.frame_id != header.frame_id)
+    return ErrorStatusError(msgs::ErrorStatus::ERR_UNKNOWN, "insertStep", "Frame id mismatch! Plan: " + header.frame_id + " vs. step: " + step.header.frame_id);
+
+  // insert step
+  steps[step.step_index] = step;
+
+  return msgs::ErrorStatus();
+}
+
+msgs::ErrorStatus StepPlan::_updateStep(const msgs::Step& step)
+{
+  // check for errors
+  if (steps.empty())
+    header = step.header;
+  else if (step.header.frame_id != header.frame_id)
+    return ErrorStatusError(msgs::ErrorStatus::ERR_UNKNOWN, "updateStep", "Frame id mismatch! Plan: " + header.frame_id + " vs. step: " + step.header.frame_id);
+
+  // check if step has already existed
+  bool modified(_hasStep(step.step_index));
+
+  // insert/update step
+  steps[step.step_index] = step;
+  steps[step.step_index].modified = modified;
+
+  return msgs::ErrorStatus();
+}
+
+msgs::ErrorStatus StepPlan::_appendStepPlan(const msgs::StepPlan& step_plan)
+{
+  int step_index = 0;
 
   // init header
   if (steps.empty())
@@ -259,35 +358,14 @@ msgs::ErrorStatus StepPlan::appendStepPlan(const msgs::StepPlan& step_plan)
     mode = step_plan.mode;
     data = step_plan.data;
   }
-
-  // check for errors
-  msgs::ErrorStatus status = isConsistent(step_plan);
-  if (status.error != msgs::ErrorStatus::NO_ERROR)
-    return status;
-  else if (step_plan.steps.empty())
-    return ErrorStatusError(msgs::ErrorStatus::ERR_UNKNOWN, "appendStepPlan", "Got empty plan!");
-  else if (step_plan.header.frame_id != header.frame_id)
-    return ErrorStatusError(msgs::ErrorStatus::ERR_UNKNOWN, "appendStepPlan", "Frame id mismatch of plans: " + header.frame_id + " vs. " + step_plan.header.frame_id);
-  else if (mode != step_plan.mode)
-    return ErrorStatusError(msgs::ErrorStatus::ERR_UNKNOWN, "appendStepPlan", "Plans have different modes!");
-
-  // determine step index offset
-  unsigned int offset = 0;
-  if (!steps.empty())
-  {
-    // check if foot index of last step of current plan is the same as the first one of the new plan
-    if (steps.rbegin()->second.foot.foot_index == step_plan.steps.front().foot.foot_index)
-      offset = steps.rbegin()->second.step_index;
-    else
-      offset = steps.rbegin()->second.step_index-1;
-  }
+  else
+    step_index = steps.rbegin()->second.step_index + 1;
 
   // append plan
-  for (size_t i = 0u; i < step_plan.steps.size(); i++)
+  msgs::ErrorStatus status;
+  for (msgs::Step step : step_plan.steps)
   {
-    msgs::Step step = step_plan.steps[i];
-    step.step_index = i + offset; // overwrite step index
-    /// TODO transform step for seemless append
+    step.step_index = step_index++;
     status += _insertStep(step);
 
     if (status.error != msgs::ErrorStatus::NO_ERROR)
@@ -297,10 +375,8 @@ msgs::ErrorStatus StepPlan::appendStepPlan(const msgs::StepPlan& step_plan)
   return status;
 }
 
-msgs::ErrorStatus StepPlan::updateStepPlan(const msgs::StepPlan& step_plan, int min_step_index)
+msgs::ErrorStatus StepPlan::_updateStepPlan(const msgs::StepPlan& step_plan)
 {
-  boost::unique_lock<boost::shared_mutex> lock(step_plan_mutex);
-
   // init header
   if (steps.empty())
   {
@@ -309,21 +385,10 @@ msgs::ErrorStatus StepPlan::updateStepPlan(const msgs::StepPlan& step_plan, int 
     data = step_plan.data;
   }
 
-  // check for errors
-  else if (step_plan.steps.empty())
-    return ErrorStatusError(msgs::ErrorStatus::ERR_UNKNOWN, "updateStepPlan", "Got empty plan!");
-  else if (step_plan.header.frame_id != header.frame_id)
-    return ErrorStatusError(msgs::ErrorStatus::ERR_UNKNOWN, "updateStepPlan", "Frame id mismatch of plans: " + header.frame_id + " vs. " + step_plan.header.frame_id);
-  else if (mode != step_plan.mode)
-    return ErrorStatusError(msgs::ErrorStatus::ERR_UNKNOWN, "updateStepPlan", "Plans have different modes!");
-
   // update plan
   msgs::ErrorStatus status;
   for (std::vector<msgs::Step>::const_iterator itr = step_plan.steps.begin(); itr != step_plan.steps.end(); itr++)
   {
-    if (itr->step_index < min_step_index)
-      continue;
-
     status += _updateStep(*itr);
 
     if (status.error != msgs::ErrorStatus::NO_ERROR)
@@ -333,46 +398,64 @@ msgs::ErrorStatus StepPlan::updateStepPlan(const msgs::StepPlan& step_plan, int 
   return status;
 }
 
-msgs::ErrorStatus StepPlan::stitchStepPlan(const msgs::StepPlan &step_plan, int min_step_index)
+msgs::ErrorStatus StepPlan::_stitchStepPlan(const msgs::StepPlan& step_plan, int step_index)
 {
-  boost::unique_lock<boost::shared_mutex> lock(step_plan_mutex);
-
-  // init header
+  // simple case: current step plan is still empty
   if (steps.empty())
+    return _updateStepPlan(step_plan);
+
+  msgs::Step last_current_step;
+  msgs::Step first_new_step;
+
+  if (step_index == 0)
   {
-    header = step_plan.header;
-    mode = step_plan.mode;
-    data = step_plan.data;
+    last_current_step = steps.rbegin()->second;
+    first_new_step = step_plan.steps.front();
+  }
+  else
+  {
+    if (!_getStep(last_current_step, step_index))
+      return ErrorStatusError(msgs::ErrorStatus::ERR_INVALID_STEP, "stitchStepPlan", "Current step plan doesn't contain step index " + boost::lexical_cast<std::string>(step_index) + "!");
+
+    if (!getStep(first_new_step, step_plan, step_index))
+      return ErrorStatusError(msgs::ErrorStatus::ERR_INVALID_STEP, "stitchStepPlan", "Input step plan doesn't contain step index " + boost::lexical_cast<std::string>(step_index) + "!");
   }
 
-  // check for errors
-  msgs::ErrorStatus status = isConsistent(step_plan);
-  if (status.error != msgs::ErrorStatus::NO_ERROR)
-    return status;
-  else if (step_plan.steps.empty())
-    return ErrorStatusError(msgs::ErrorStatus::ERR_UNKNOWN, "stitchStepPlan", "Got empty plan!");
-  else if (step_plan.header.frame_id != header.frame_id)
-    return ErrorStatusError(msgs::ErrorStatus::ERR_UNKNOWN, "stitchStepPlan", "Frame id mismatch of plans: " + header.frame_id + " vs. " + step_plan.header.frame_id);
-  else if (mode != step_plan.mode)
-    return ErrorStatusError(msgs::ErrorStatus::ERR_UNKNOWN, "stitchStepPlan", "Plans have different modes!");
-  /// TODO: Check if stiching would result in consistent step plan
+  // ensure overlapping first step
+  if (last_current_step.foot.foot_index != first_new_step.foot.foot_index)
+    return ErrorStatusError(msgs::ErrorStatus::ERR_INCONSISTENT_STEP_PLAN, "stitchStepPlan", std::string("First foot ") +
+                            (first_new_step.foot.foot_index == msgs::Foot::RIGHT ? std::string("(RIGHT)") : std::string("(LEFT)")) + std::string(" of input step plan doesn't match ") +
+                            (last_current_step.foot.foot_index == msgs::Foot::RIGHT ? std::string("(RIGHT)") : std::string("(LEFT)")) + std::string(" last foot of current step plan."));
 
-  // stitch plan
-  for (std::vector<msgs::Step>::const_iterator itr = step_plan.steps.begin(); itr != step_plan.steps.end(); itr++)
+  // reference foot pose (last step of current plan)
+  tf::Pose ref_current_plan;
+  tf::poseMsgToTF(last_current_step.foot.pose, ref_current_plan);
+
+  // reference foot pose of input plan
+  tf::Pose ref_input_plan;
+  tf::poseMsgToTF(first_new_step.foot.pose, ref_input_plan);
+  ref_input_plan.setRotation(tf::createQuaternionFromYaw(tf::getYaw(ref_input_plan.getRotation()))); /// HACK to clamp everything to flat ground
+
+  // determine transformation 'input plan first step' -> 'current plan last step'
+  tf::Transform transform = ref_current_plan * ref_input_plan.inverse();
+
+  // transform input plan to be relative to current plan's reference foot pose
+  msgs::StepPlan step_plan_transformed = step_plan;
+  step_plan_transformed.steps.clear();
+
+  for (msgs::Step step : step_plan.steps)
   {
-    if (itr->step_index < min_step_index)
-      continue;
-
-    status += _insertStep(*itr);
-
-    if (status.error != msgs::ErrorStatus::NO_ERROR)
-      break;
+    if (step.step_index >= step_index)
+      step_plan_transformed.steps.push_back(step);
   }
 
-  return status;
+  transformStepPlan(step_plan_transformed, transform);
+
+  // update plan using the transformed step plan
+  return _updateStepPlan(step_plan_transformed);
 }
 
-msgs::ErrorStatus StepPlan::fromMsg(const msgs::StepPlan &step_plan)
+msgs::ErrorStatus StepPlan::fromMsg(const msgs::StepPlan& step_plan)
 {
   clear();
   msgs::ErrorStatus status = isConsistent(step_plan);
@@ -427,19 +510,5 @@ msgs::ErrorStatus StepPlan::toMsg(msgs::StepPlan& step_plan) const
   status += isConsistent(step_plan);
 
   return status;
-}
-
-bool StepPlan::getStep(msgs::Step& step, const msgs::StepPlan& step_plan, unsigned int step_index)
-{
-  for (std::vector<msgs::Step>::const_iterator itr = step_plan.steps.begin(); itr != step_plan.steps.end(); itr++)
-  {
-    const msgs::Step& s = *itr;
-    if (s.step_index == step_index)
-    {
-      step = s;
-      return true;
-    }
-  }
-  return false;
 }
 }

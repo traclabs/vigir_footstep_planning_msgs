@@ -31,6 +31,8 @@
 
 #include <ros/ros.h>
 
+#include <tf/tf.h>
+
 #include <boost/thread/shared_mutex.hpp>
 
 #include <vigir_footstep_planning_msgs/footstep_planning_msgs.h>
@@ -61,12 +63,25 @@ public:
   bool empty() const;
   size_t size() const;
 
+  int getFirstStepIndex() const;
+  int getLastStepIndex() const;
+
   msgs::ErrorStatus insertStep(const msgs::Step& step);
   msgs::ErrorStatus updateStep(const msgs::Step& step);
 
-  bool hasStep(unsigned int step_index) const;
+  bool hasStep(unsigned int step_index) const
+  {
+    boost::shared_lock<boost::shared_mutex> lock(step_plan_mutex);
+    return _hasStep(step_index);
+  }
 
-  bool getStep(msgs::Step& step, unsigned int step_index) const;
+  static bool getStep(msgs::Step& step, const msgs::StepPlan& step_plan, unsigned int step_index);
+  inline bool getStep(msgs::Step& step, unsigned int step_index) const
+  {
+    boost::shared_lock<boost::shared_mutex> lock(step_plan_mutex);
+    return _getStep(step, step_index);
+  }
+
   bool getStepAt(msgs::Step& step, unsigned int position) const;
   bool getfirstStep(msgs::Step& step) const;
   bool getLastStep(msgs::Step& step) const;
@@ -77,29 +92,94 @@ public:
   void removeStep(unsigned int step_index);
   void removeStepAt(unsigned int position);
 
-  msgs::ErrorStatus appendStepPlan(const msgs::StepPlan& step_plan);
-  msgs::ErrorStatus updateStepPlan(const msgs::StepPlan& step_plan, int min_step_index = 0); // caution: Very unrestrictive for input step_plan, does not perform consisty checks!
-  msgs::ErrorStatus stitchStepPlan(const msgs::StepPlan& step_plan, int min_step_index = 0);
-
   void removeSteps(unsigned int from_step_index, int to_step_index = -1);
 
-  int getFirstStepIndex() const;
-  int getLastStepIndex() const;
+  /**
+   * @brief Appends a step plan to current step plan. No transformation will be done!
+   * @param step_plan Step plan to be merged into current step plan.
+   * @return error status
+   */
+  msgs::ErrorStatus appendStepPlan(const msgs::StepPlan& step_plan);
+
+  /**
+   * @brief Merges the given step plan to current step plan.
+   * Already exisiting steps *will* be tagged as modified. No transformation will be done!
+   * @param step_plan Step plan to be merged into current step plan.
+   * @return error status
+   */
+  msgs::ErrorStatus updateStepPlan(const msgs::StepPlan& step_plan); // caution: Very unrestrictive for input step_plan, does not perform consisty checks!
+
+  /**
+   * @brief Stitches the given step plan into the current step plan starting at step_index. Hereby the all
+   * in range [0, step_index] are kept and all steps in range (step_index, inf] are taken from input step plan.
+   * The steps at step_index from both step plans are taken as reference points (= both are
+   * representing the equal position in world frame) to transform the input step plan towards each other.
+   * Finally, all steps are stitched to the current step plan based on the determined
+   * transformation.
+   * @param step_plan Step plan to be merged into current step plan.
+   * @param step_index Stitching point where the input step plan will be stitched to the current step plan.
+   * @return error status
+   */
+  msgs::ErrorStatus stitchStepPlan(const msgs::StepPlan& step_plan, int step_index = 0);
+
+  static void transformStepPlan(msgs::StepPlan& step_plan, tf::Transform transform);
 
   msgs::ErrorStatus fromMsg(const msgs::StepPlan& step_plan);
   msgs::ErrorStatus toMsg(msgs::StepPlan& step_plan) const;
-
-  static bool getStep(msgs::Step& step, const msgs::StepPlan& step_plan, unsigned int step_index);
 
   // typedefs
   typedef boost::shared_ptr<StepPlan> Ptr;
   typedef boost::shared_ptr<const StepPlan> ConstPtr;
 
 protected:
-  // mutex free versions
+  /** mutex free versions */
+
+  bool _hasStep(unsigned int step_index) const;
+
   bool _getStep(msgs::Step& step, unsigned int step_index) const;
+
+  /**
+   * @brief Inserts step into step plan. If the step does already exists it will be
+   * overwritten and *not tagged* as modified.
+   * @param step Step to be inserted
+   * @return error status
+   */
   msgs::ErrorStatus _insertStep(const msgs::Step& step);
+
+  /**
+   * @brief Inserts step into step plan. If the step does already exists it will be
+   * overwritten and *tagged* as modified.
+   * @param step Step to be inserted
+   * @return error status
+   */
   msgs::ErrorStatus _updateStep(const msgs::Step& step);
+
+  /**
+   * @brief Appends a step plan to current step plan. No transformation will be done!
+   * @param step_plan Step plan to be merged into current step plan.
+   * @return error status
+   */
+  msgs::ErrorStatus _appendStepPlan(const msgs::StepPlan& step_plan);
+
+  /**
+   * @brief Merges the given step plan to current step plan.
+   * Already exisiting steps *will* be tagged as modified. No transformation will be done!
+   * @param step_plan Step plan to be merged into current step plan.
+   * @return error status
+   */
+  msgs::ErrorStatus _updateStepPlan(const msgs::StepPlan& step_plan); // caution: Very unrestrictive for input step_plan, does not perform consisty checks!
+
+  /**
+   * @brief Stitches the given step plan into the current step plan starting at step_index. Hereby the all
+   * in range [0, step_index] are kept and all steps in range (step_index, inf] are taken from input step plan.
+   * The steps at step_index from both step plans are taken as reference points (= both are
+   * representing the equal position in world frame) to transform the input step plan towards each other.
+   * Finally, all steps are stitched to the current step plan based on the determined
+   * transformation.
+   * @param step_plan Step plan to be merged into current step plan.
+   * @return error status
+   */
+  msgs::ErrorStatus _stitchStepPlan(const msgs::StepPlan& step_plan, int step_index = 0);
 
   mutable boost::shared_mutex step_plan_mutex;
 

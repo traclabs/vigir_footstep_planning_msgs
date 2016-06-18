@@ -88,7 +88,6 @@ namespace msgs
 {
 using namespace vigir_footstep_planning_msgs;
 }
-
 // Extension to ErrorStatus message
 msgs::ErrorStatus operator+(const msgs::ErrorStatus& lhs, const msgs::ErrorStatus& rhs);
 msgs::ErrorStatus operator+=(msgs::ErrorStatus& lhs, const msgs::ErrorStatus& rhs);
