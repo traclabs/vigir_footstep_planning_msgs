@@ -1,0 +1,58 @@
+//=================================================================================================
+// Copyright (c) 2016, Alexander Stumpf, TU Darmstadt
+// All rights reserved.
+
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+//     * Redistributions of source code must retain the above copyright
+//       notice, this list of conditions and the following disclaimer.
+//     * Redistributions in binary form must reproduce the above copyright
+//       notice, this list of conditions and the following disclaimer in the
+//       documentation and/or other materials provided with the distribution.
+//     * Neither the name of the Simulation, Systems Optimization and Robotics
+//       group, TU Darmstadt nor the names of its contributors may be used to
+//       endorse or promote products derived from this software without
+//       specific prior written permission.
+
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+// ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+// WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+// DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY
+// DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+// (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+// ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+//=================================================================================================
+
+#ifndef VIGIR_FOOTSTEP_PLANNING_MSGS_TEST_HELPER_H__
+#define VIGIR_FOOTSTEP_PLANNING_MSGS_TEST_HELPER_H__
+
+#include <ros/ros.h>
+
+#include <geometry_msgs/Pose.h>
+
+#include <vigir_footstep_planning_msgs/footstep_planning_msgs.h>
+#include <vigir_footstep_planning_msgs/step_plan.h>
+
+
+
+namespace vigir_footstep_planning
+{
+void isEqualTest(const std_msgs::String& exp, const std_msgs::String& res);
+void isEqualTest(const std_msgs::Header& exp, const std_msgs::Header& res);
+
+void isEqualTest(const geometry_msgs::Point& exp, const geometry_msgs::Point& res);
+void isEqualTest(const geometry_msgs::Quaternion& exp, const geometry_msgs::Quaternion& res);
+void isEqualTest(const geometry_msgs::Pose& exp, const geometry_msgs::Pose& res);
+
+void isEqualTest(const msgs::Foot& exp, const msgs::Foot& res);
+void isEqualTest(const msgs::Feet& exp, const msgs::Feet& res);
+void isEqualTest(const msgs::Step& exp, const msgs::Step& res);
+void isEqualTest(const msgs::StepPlan& exp, const msgs::StepPlan& res);
+
+void isEqualTest(const StepPlan& exp, const StepPlan& res);
+}
+
+#endif

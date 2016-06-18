@@ -4,6 +4,8 @@ project(vigir_footstep_planning_msgs)
 #set(CMAKE_BUILD_TYPE Debug)
 #set(CMAKE_BUILD_TYPE RelWithDebInfo)
 
+set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
+
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
@@ -181,11 +183,28 @@ install(DIRECTORY action
 ## Testing ##
 #############
 
+## Specify additional locations of test files
+set(TEST_HEADERS
+  test/include/${PROJECT_NAME}/msgs_test_helper.h
+)
+
+set(TEST_SOURCES
+  test/src/msgs_test_helper.cpp
+  test/src/step_plan_utest.cpp
+)
+
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_vigir_footstep_planning_msgs.cpp)
-# if(TARGET ${PROJECT_NAME}-test)
-#   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
-# endif()
+if(CATKIN_ENABLE_TESTING)
+  add_library(${PROJECT_NAME}-test ${TEST_SOURCES} ${TEST_HEADERS})
+  target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
+
+  catkin_add_gtest(utest test/src/utest.cpp ${TEST_SOURCES})
+
+  if(TARGET ${PROJECT_NAME}-test)
+    target_include_directories(${PROJECT_NAME}-test PUBLIC test/include)
+    target_link_libraries(utest ${PROJECT_NAME} ${PROJECT_NAME}-test)
+  endif()
+endif()
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
