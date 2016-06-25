@@ -24,9 +24,11 @@ def create_error_status(error=0, error_msg=str(), warning=0, warning_msg=str()):
 
 
 def walk_controller_state_to_string(state):
-    if state == ExecuteStepPlanFeedback.IDLE:
-        return "IDLE"
-    if state == ExecuteStepPlanFeedback.ACTIVE:
+    if state == ExecuteStepPlanFeedback.NOT_READY:
+        return "NOT_READY"
+    elif state == ExecuteStepPlanFeedback.READY:
+        return "READY"
+    elif state == ExecuteStepPlanFeedback.ACTIVE:
         return "ACTIVE"
     elif state == ExecuteStepPlanFeedback.PAUSED:
         return "PAUSED"
