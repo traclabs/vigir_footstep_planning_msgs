@@ -59,9 +59,21 @@ public:
   StepPlan& operator|(const msgs::Step& step);
   StepPlan& operator-(const msgs::Step& step);
 
-  void clear();
-  bool empty() const;
-  size_t size() const;
+  void clear()
+  {
+    boost::unique_lock<boost::shared_mutex> lock(step_plan_mutex);
+    _clear();
+  }
+  bool empty() const
+  {
+    boost::shared_lock<boost::shared_mutex> lock(step_plan_mutex);
+    return _empty();
+  }
+  size_t size() const
+  {
+    boost::shared_lock<boost::shared_mutex> lock(step_plan_mutex);
+    return _size();
+  }
 
   int getFirstStepIndex() const;
   int getLastStepIndex() const;
@@ -122,7 +134,15 @@ public:
    */
   msgs::ErrorStatus stitchStepPlan(const msgs::StepPlan& step_plan, int step_index = 0);
 
-  static void transformStepPlan(msgs::StepPlan& step_plan, tf::Transform transform);
+  /**
+   * @brief Determines transformation T from current to target coordinate system represented by the given poses in a
+   * commom coordinate system W so target_W = T * current_W holds.
+   * @param current center of current coordinate system in common system W
+   * @param target center of target coordinate system in common system W
+   * @return transformation between both poses
+   */
+  static tf::Transform getTransform(const geometry_msgs::Pose& current, const geometry_msgs::Pose& target);
+  static void transformStepPlan(msgs::StepPlan& step_plan, const tf::Transform& transform);
 
   msgs::ErrorStatus fromMsg(const msgs::StepPlan& step_plan);
   msgs::ErrorStatus toMsg(msgs::StepPlan& step_plan) const;
@@ -133,6 +153,9 @@ public:
 
 protected:
   /** mutex free versions */
+  void _clear();
+  bool _empty() const;
+  size_t _size() const;
 
   bool _hasStep(unsigned int step_index) const;
 
