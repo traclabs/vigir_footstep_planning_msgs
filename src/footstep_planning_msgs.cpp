@@ -85,14 +85,24 @@ std::string WarningStatusCodeToString(unsigned int warning)
   }
 }
 
-msgs::ErrorStatus createErrorStatus(const std::string& context, unsigned int error, const std::string& error_msg, unsigned int warning, const std::string& warning_msg, bool output)
+msgs::ErrorStatus createErrorStatus(const std::string& context, unsigned int error, const std::string& error_msg, unsigned int warning, const std::string& warning_msg, bool output, double throttle_rate)
 {
   if (output)
   {
-    if (error)
-      ROS_ERROR("[%s][%s] %s", ErrorStatusCodeToString(error).c_str(), context.c_str(), error_msg.c_str());
-    if (warning)
-      ROS_WARN("[%s][%s] %s", WarningStatusCodeToString(warning).c_str(), context.c_str(), warning_msg.c_str());
+    if (throttle_rate > 0.0)
+    {
+      if (error)
+        ROS_ERROR_THROTTLE(throttle_rate, "[%s][%s] %s", ErrorStatusCodeToString(error).c_str(), context.c_str(), error_msg.c_str());
+      if (warning)
+        ROS_WARN_THROTTLE(throttle_rate, "[%s][%s] %s", WarningStatusCodeToString(warning).c_str(), context.c_str(), warning_msg.c_str());
+    }
+    else
+    {
+      if (error)
+        ROS_ERROR("[%s][%s] %s", ErrorStatusCodeToString(error).c_str(), context.c_str(), error_msg.c_str());
+      if (warning)
+        ROS_WARN("[%s][%s] %s", WarningStatusCodeToString(warning).c_str(), context.c_str(), warning_msg.c_str());
+    }
   }
 
   msgs::ErrorStatus status;
@@ -103,14 +113,14 @@ msgs::ErrorStatus createErrorStatus(const std::string& context, unsigned int err
   return status;
 }
 
-msgs::ErrorStatus ErrorStatusError(unsigned int error, const std::string& context, const std::string& error_msg, bool output)
+msgs::ErrorStatus ErrorStatusError(unsigned int error, const std::string& context, const std::string& error_msg, bool output, double throttle_rate)
 {
-  return createErrorStatus(context, error, error_msg, msgs::ErrorStatus::NO_WARNING, "", output);
+  return createErrorStatus(context, error, error_msg, msgs::ErrorStatus::NO_WARNING, "", output, throttle_rate);
 }
 
-msgs::ErrorStatus ErrorStatusWarning(unsigned int warning, const std::string& context, const std::string& warning_msg, bool output)
+msgs::ErrorStatus ErrorStatusWarning(unsigned int warning, const std::string& context, const std::string& warning_msg, bool output, double throttle_rate)
 {
-  return createErrorStatus(context, msgs::ErrorStatus::NO_ERROR, "", warning, warning_msg, output);
+  return createErrorStatus(context, msgs::ErrorStatus::NO_ERROR, "", warning, warning_msg, output, throttle_rate);
 }
 
 bool hasError(const msgs::ErrorStatus& status)

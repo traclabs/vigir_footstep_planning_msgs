@@ -97,9 +97,9 @@ msgs::ErrorStatus isConsistent(const msgs::StepPlan& result);
 std::string ErrorStatusCodeToString(unsigned int error);
 std::string WarningStatusCodeToString(unsigned int warning);
 
-msgs::ErrorStatus createErrorStatus(const std::string& context, unsigned int error, const std::string& error_msg, unsigned int warning, const std::string& warning_msg, bool output = true);
-msgs::ErrorStatus ErrorStatusError(unsigned int error, const std::string& context, const std::string& error_msg, bool output = true);
-msgs::ErrorStatus ErrorStatusWarning(unsigned int warning, const std::string& context, const std::string& warning_msg, bool output = true);
+msgs::ErrorStatus createErrorStatus(const std::string& context, unsigned int error, const std::string& error_msg, unsigned int warning, const std::string& warning_msg, bool output = true, double throttle_rate = 0.0);
+msgs::ErrorStatus ErrorStatusError(unsigned int error, const std::string& context, const std::string& error_msg, bool output = true, double throttle_rate = 0.0);
+msgs::ErrorStatus ErrorStatusWarning(unsigned int warning, const std::string& context, const std::string& warning_msg, bool output = true, double throttle_rate = 0.0);
 
 bool hasError(const msgs::ErrorStatus& status);
 bool hasWarning(const msgs::ErrorStatus& status);
