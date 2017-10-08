@@ -5,7 +5,7 @@ bool joystick_mode          # enables support for joystick input
 bool ignore_invalid_steps   # resets invalid flags set by planner
 
 # parameters for pattern generator
-geometry_msgs/Pose d_step
+geometry_msgs/Twist cmd
 float32 foot_seperation
 
 std_msgs/String parameter_set_name # name of parameter set to be used, keep empty to use default parameter set
