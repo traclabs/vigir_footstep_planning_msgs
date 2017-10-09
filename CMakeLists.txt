@@ -46,7 +46,6 @@ add_service_files(
   FILES
   EditStepService.srv
   GenerateFeetPoseService.srv
-  GeneratePatternService.srv
   GetStepPlanService.srv
   PatternGeneratorParametersService.srv
   SetStepPlanService.srv
@@ -66,7 +65,6 @@ add_action_files(
   EditStep.action
   ExecuteStepPlan.action
   GenerateFeetPose.action
-  GeneratePattern.action
   GetStepPlan.action
   SetStepPlan.action
   StepPlanRequest.action

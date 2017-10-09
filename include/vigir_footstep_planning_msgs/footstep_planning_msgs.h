@@ -52,7 +52,6 @@
 // services
 #include <vigir_footstep_planning_msgs/EditStepService.h>
 #include <vigir_footstep_planning_msgs/GenerateFeetPoseService.h>
-#include <vigir_footstep_planning_msgs/GeneratePatternService.h>
 #include <vigir_footstep_planning_msgs/GetStepPlanService.h>
 #include <vigir_footstep_planning_msgs/PatternGeneratorParametersService.h>
 #include <vigir_footstep_planning_msgs/SetStepPlanService.h>
@@ -71,7 +70,6 @@
 #include <vigir_footstep_planning_msgs/EditStepAction.h>
 #include <vigir_footstep_planning_msgs/ExecuteStepPlanAction.h>
 #include <vigir_footstep_planning_msgs/GenerateFeetPoseAction.h>
-#include <vigir_footstep_planning_msgs/GeneratePatternAction.h>
 #include <vigir_footstep_planning_msgs/GetStepPlanAction.h>
 #include <vigir_footstep_planning_msgs/SetStepPlanAction.h>
 #include <vigir_footstep_planning_msgs/StepPlanRequestAction.h>
