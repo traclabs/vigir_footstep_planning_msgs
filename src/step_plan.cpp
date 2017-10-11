@@ -420,6 +420,9 @@ msgs::ErrorStatus StepPlan::_updateStepPlan(const msgs::StepPlan& step_plan)
 
 msgs::ErrorStatus StepPlan::_stitchStepPlan(const msgs::StepPlan& step_plan, int step_index)
 {
+  if (step_plan.steps.empty())
+    return msgs::ErrorStatus();
+
   // simple case: current step plan is still empty
   if (steps.empty())
     return _updateStepPlan(step_plan);
@@ -470,6 +473,9 @@ msgs::ErrorStatus StepPlan::_stitchStepPlan(const msgs::StepPlan& step_plan, int
     else
       itr++;
   }
+
+  // remove pivot step as we won't change it
+  step_plan_transformed.steps.erase(step_plan_transformed.steps.begin());
 
   // update plan using the transformed step plan
   return _updateStepPlan(step_plan_transformed);
