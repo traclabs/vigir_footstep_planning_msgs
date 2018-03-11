@@ -1,6 +1,7 @@
 vigir_footstep_planning_msgs/StepPlan step_plan
 ---
 vigir_footstep_planning_msgs/FootstepExecutionStatus status
+int8 controller_state                               # final state of walk controller
 ---
 std_msgs/Header header
 
