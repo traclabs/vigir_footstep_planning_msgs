@@ -154,7 +154,7 @@ bool StepPlan::popStep(msgs::Step& step)
 bool StepPlan::popStep()
 {
   msgs::Step step;
-  popStep(step);
+  return popStep(step);
 }
 
 void StepPlan::removeStep(unsigned int step_index)
